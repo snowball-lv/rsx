@@ -3,7 +3,7 @@
 A file hosting server for ShareX written in Ruby.
 
 # Usage
-- Adjust [conf.rb](./conf.rb) to your liking:
+- Create a `conf.rb` file as per [conf-example.rb](./conf-example.rb) to your liking:
 
 ```ruby
 BASE_URL="yourdomain.com"
@@ -19,4 +19,4 @@ PASSWORD="your_password"
 ```
 # Notes
 
-[rsx.rb](./rsx.rb#L48) assumes `https` when generating URLs.
+[rsx.rb](./rsx.rb#L18) assumes `https` when generating URLs.

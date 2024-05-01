@@ -14,12 +14,20 @@ def full_path(name)
     return File.join(FILE_DIR, name)
 end
 
-def get_url(name)
-    return "#{BASE_URL}/files/#{name}"
+def get_file_url(name)
+    return "https://#{BASE_URL}/files/#{name}"
 end
 
 def rand_name()
     return SecureRandom.hex(5)
+end
+
+def get_files() 
+    Dir::children(FILE_DIR)
+end
+
+def get_file_urls()
+    get_files.map do |file| get_file_url(file) end
 end
 
 post "/upload" do
@@ -45,7 +53,7 @@ post "/upload" do
     end
     FileUtils.mkdir_p(File.dirname(path))
     File.write(path, tempfile.read)
-    return "https://#{get_url(name)}"
+    return get_file_url(name)
 end
 
 get "/favicon.ico" do
@@ -59,4 +67,10 @@ get "/files/:name" do
         return
     end
     send_file("./404.jpg")
+end
+
+get "/album" do
+    erb :album, :locals => {
+        files: get_file_urls()
+    }
 end

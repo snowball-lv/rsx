@@ -3,7 +3,21 @@
 require "sinatra"
 require "fileutils"
 require "securerandom"
+require "sequel"
+require "mimemagic"
 require "./conf"
+
+DB = Sequel.sqlite("files-meta.db")
+
+DB.create_table? :files do
+    primary_key :id
+    String :name, unique: true, null: false
+    String :mime
+    String :ip
+    DateTime :time, default: Sequel::CURRENT_TIMESTAMP
+end
+
+DB_FILES = DB[:files]
 
 puts "BASE_URL [#{BASE_URL}]"
 puts "MAX_UPLOAD_MB [#{MAX_UPLOAD_MB}]"
@@ -30,6 +44,17 @@ def get_file_urls()
     get_files.map do |file| get_file_url(file) end
 end
 
+def get_file_mime(path)
+    MimeMagic.by_magic(File.open(path)).type
+end
+
+def insert_file(name, ip)
+    path = full_path(name)
+    mime = get_file_mime(path)
+    puts "insert #{name}, #{ip}, #{mime}"
+    DB_FILES.insert(name: name, mime: mime, ip: ip)
+end
+
 post "/upload" do
     img = params["img"]
     pwd = params["password"]
@@ -53,6 +78,7 @@ post "/upload" do
     end
     FileUtils.mkdir_p(File.dirname(path))
     File.write(path, tempfile.read)
+    insert_file(name, request.ip)
     return get_file_url(name)
 end
 
@@ -70,7 +96,28 @@ get "/files/:name" do
 end
 
 get "/album" do
+    files = DB_FILES.where(ip: request.ip)
+            .order(:time)
+            .map { |file| { 
+                name: file[:name],
+                url: get_file_url(file[:name]),
+                mime: file[:mime]
+            }}
     erb :album, :locals => {
-        files: get_file_urls()
+        files: files,
+        album_name: request.ip
+    }
+end
+
+get "/album/all" do
+    files = DB_FILES.order(:time)
+            .map { |file| { 
+                name: file[:name],
+                url: get_file_url(file[:name]),
+                mime: file[:mime]
+            }}
+    erb :album, :locals => {
+        files: files,
+        album_name: "all"
     }
 end

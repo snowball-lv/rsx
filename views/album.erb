@@ -18,6 +18,13 @@
             color: ivory;
             font-size: 4em;
             text-shadow: 4px 4px 4px black;
+            margin-bottom: 0px;
+        }
+        h2 {
+            color: ivory;
+            font-size: 2em;
+            text-shadow: 4px 4px 4px black;
+            margin-top: 0px;
         }
         .img-container {
             background: #111111;
@@ -36,21 +43,44 @@
             border-radius: 8px;
             overflow: hidden;
             box-shadow: 4px 4px 4px black;
+            text-decoration: none;
         }
         .tile img {
             width: 100%;
             height: 100%;
             object-fit: contain;
         }
+        .tile .text {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            color: ivory;
+            display: flex;
+            justify-content: center;
+            align-content: center;
+            flex-direction: column;
+            text-align: center;
+        }
+        .text p {
+            margin: 0px;
+        }
         </style>
     </head>
     <body>
         <div class="page-container">
-            <h1>Album</h2>
+            <h1>Album</h1>
+            <h2><%=album_name%></h2>
             <div class="img-container">
             <% files.each do |file| %>
-                <a class="tile" href="<%=file%>">
-                    <img src=<%=file%>>
+                <a class="tile" href="<%=file[:url]%>">
+                    <%if file[:mime].include?("image/")%>
+                        <img src=<%=file[:url]%>>
+                    <%else%>
+                        <div class="text">
+                            <p><%=file[:name]%><p>
+                            <p><%=file[:mime]%><p>
+                        </div>
+                    <%end%>
                 </a>
             <% end %>
             </div>

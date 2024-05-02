@@ -100,6 +100,7 @@ end
 get "/album" do
     files = DB_FILES.where(ip: request.ip)
             .order(:time)
+	    .reverse
             .map { |file| { 
                 name: file[:name],
                 url: get_file_url(file[:name]),
@@ -113,6 +114,7 @@ end
 
 get "/album/all" do
     files = DB_FILES.order(:time)
+	    .reverse
             .map { |file| { 
                 name: file[:name],
                 url: get_file_url(file[:name]),

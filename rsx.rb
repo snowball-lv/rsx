@@ -7,6 +7,7 @@ require "fileutils"
 require "securerandom"
 require "sequel"
 require "mimemagic"
+require "mini_magick"
 require "./conf"
 
 DB = Sequel.sqlite("files-meta.db")
@@ -26,12 +27,29 @@ puts "MAX_UPLOAD_MB [#{MAX_UPLOAD_MB}]"
 puts "FILE_DIR [#{FILE_DIR}]"
 puts "PASSWORD [#{PASSWORD}]"
 
-def full_path(name)
+THUMB_DIR = File.join(FILE_DIR, "thumbs")
+puts "THUMB_DIR [#{THUMB_DIR}]"
+
+THUMB_DIM = 128
+
+def get_full_path(name)
     return File.join(FILE_DIR, name)
 end
 
+def full_path(name)
+    return get_full_path(name)
+end
+
+def get_thumb_path(name)
+    return File.join(THUMB_DIR, name)
+end
+
 def get_file_url(name)
-    return "https://#{BASE_URL}/files/#{name}"
+    return "http://#{BASE_URL}/files/#{name}"
+end
+
+def get_thumb_url(name)
+    return "http://#{BASE_URL}/files/thumbs/#{name}"
 end
 
 def rand_name()
@@ -47,7 +65,8 @@ def get_file_urls()
 end
 
 def get_file_mime(path)
-    MimeMagic.by_magic(File.open(path)).type
+    mime = MimeMagic.by_magic(File.open(path))
+    return mime ? mime.type : ""
 end
 
 def insert_file(name, ip)
@@ -56,6 +75,34 @@ def insert_file(name, ip)
     puts "insert #{name}, #{ip}, #{mime}"
     DB_FILES.insert(name: name, mime: mime, ip: ip)
 end
+
+def make_thumb(name)
+    puts "Making thumb for #{name}"
+    mime = get_file_mime(get_full_path(name))
+    return unless mime.start_with?("image/")
+    img = MiniMagick::Image.open(get_full_path(name))
+    if img.width > img.height
+        height = img.height / (img.width / THUMB_DIM.to_f)
+        img.resize("#{THUMB_DIM}x#{height.to_i}")
+    else
+        width = img.width / (img.height / THUMB_DIM.to_f)
+        img.resize("#{width.to_i}x#{THUMB_DIM}")
+    end
+    thumbpath = get_thumb_path(name)
+    FileUtils.mkdir_p(File.dirname(thumbpath))
+    img.write(thumbpath)
+end
+
+def gen_all_thumbs()
+    Dir.each_child(FILE_DIR) do |f|
+        if File.file?(get_full_path(f)) && !File.exist?(get_thumb_path(f))
+            make_thumb(f)
+        end
+    end
+end
+
+# startup tasks
+gen_all_thumbs()
 
 post "/upload" do
     img = params["img"]
@@ -92,7 +139,14 @@ get "/files/:name" do
     path = full_path(params["name"])
     if File.exist?(path)
         send_file(path)
-        return
+    end
+    pass
+end
+
+get "/files/thumbs/:name" do
+    path = get_thumb_path(params["name"])
+    if File.exist?(path)
+        send_file(path)
     end
     pass
 end
@@ -104,7 +158,8 @@ get "/album" do
             .map { |file| { 
                 name: file[:name],
                 url: get_file_url(file[:name]),
-                mime: file[:mime]
+                mime: file[:mime],
+                thumb_url: get_thumb_url(file[:name])
             }}
     erb :album, :locals => {
         files: files,
@@ -118,7 +173,8 @@ get "/album/all" do
             .map { |file| { 
                 name: file[:name],
                 url: get_file_url(file[:name]),
-                mime: file[:mime]
+                mime: file[:mime],
+                thumb_url: get_thumb_url(file[:name])
             }}
     erb :album, :locals => {
         files: files,

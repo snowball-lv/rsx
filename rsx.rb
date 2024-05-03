@@ -128,6 +128,7 @@ post "/upload" do
     FileUtils.mkdir_p(File.dirname(path))
     File.write(path, tempfile.read)
     insert_file(name, request.ip)
+    make_thumb(name)
     return get_file_url(name)
 end
 

@@ -94,7 +94,7 @@ get "/files/:name" do
         send_file(path)
         return
     end
-    send_file("./404.jpg")
+    pass
 end
 
 get "/album" do
@@ -124,4 +124,8 @@ get "/album/all" do
         files: files,
         album_name: "all"
     }
+end
+
+not_found do
+    send_file("./404.jpg", :status => 404)
 end

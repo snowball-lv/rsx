@@ -10,6 +10,8 @@ require "mimemagic"
 require "mini_magick"
 require "./conf"
 
+set :strict_paths, false
+
 DB = Sequel.sqlite("files-meta.db")
 
 DB.create_table? :files do

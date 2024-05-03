@@ -17,6 +17,26 @@ PASSWORD="your_password"
 ```bash
 ./rsx.rb
 ```
+
+# ShareX
+
+Use the following custom uploader settings:
+
+- Method `POST`
+- Request URL  `https://yourdomain.com/upload`
+- Body `Form data (multipart/form-data)`
+- URL Parameters
+    - Name `password`, Value `your_password`
+- File from name `img`
+
+# Frontend
+
+You can view uploads using the following endpoints:
+
+- `/album` - uploads made by your IP
+- `/album/all`- uploads made by all IPs
+
 # Notes
 
-[rsx.rb](./rsx.rb#L18) assumes `https` when generating URLs.
+- [rsx.rb](./rsx.rb#L48) assumes `https` when generating URLs
+- requires `imagemagick` to be installed

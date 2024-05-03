@@ -45,11 +45,11 @@ def get_thumb_path(name)
 end
 
 def get_file_url(name)
-    return "http://#{BASE_URL}/files/#{name}"
+    return "https://#{BASE_URL}/files/#{name}"
 end
 
 def get_thumb_url(name)
-    return "http://#{BASE_URL}/files/thumbs/#{name}"
+    return "https://#{BASE_URL}/files/thumbs/#{name}"
 end
 
 def rand_name()

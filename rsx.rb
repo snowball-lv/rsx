@@ -138,6 +138,16 @@ get "/favicon.ico" do
     send_file("./favicon.ico")
 end
 
+# test performance on this particular image
+
+TEST_DATA = File.read("./files/8533a93296.png")
+TEST_MIME = get_file_mime("./files/8533a93296.png")
+
+get "/files/8533a93296.png" do
+    content_type(TEST_MIME)
+    return TEST_DATA
+end
+
 get "/files/:name" do
     path = full_path(params["name"])
     if File.exist?(path)

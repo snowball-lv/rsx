@@ -74,7 +74,7 @@
             <% files.each do |file| %>
                 <a class="tile" href="<%=file[:url]%>">
                     <%if file[:mime].start_with?("image/")%>
-                        <img src=<%=file[:thumb_url]%>>
+                        <img loading="lazy" src=<%=file[:thumb_url]%>>
                     <%else%>
                         <div class="text">
                             <p><%=file[:name]%><p>
